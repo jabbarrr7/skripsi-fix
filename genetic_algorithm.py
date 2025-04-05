@@ -2,105 +2,85 @@ import numpy as np
 import random
 
 class GeneticScheduler:
-    def __init__(self, tasks, teachers, subjects, rooms, timeslots):
+    def __init__(self, tasks, teachers, rooms, timeslots):
         self.tasks = tasks
         self.teachers = teachers
-        self.subjects = subjects
         self.rooms = rooms
         self.timeslots = timeslots
-        self.population_size = 50
-        self.mutation_rate = 0.1
-        self.generations = 100
 
-        # Dosen dengan keahlian yang sesuai untuk mata kuliah tertentu
-        self.teacher_skills = {
-            teacher: random.sample(subjects, k=random.randint(1, len(subjects)))
-            for teacher in teachers
-        }
+    def initialize_population(self, size):
+        population = []
+        for _ in range(size):
+            individual = []
+            for task in self.tasks:
+                teacher = random.choice(self.teachers)
+                room = random.choice(self.rooms)
+                timeslot = random.choice(self.timeslots)
+                individual.append({
+                    "task": task,
+                    "teacher": teacher,
+                    "room": room,
+                    "timeslot": timeslot
+                })
+            population.append(individual)
+        return population
 
-    def create_chromosome(self):
-        """Membuat satu individu (jadwal acak)"""
-        return [
-            (
-                task,
-                random.choice(self.teachers),
-                random.choice(self.subjects),
-                random.choice(self.rooms),
-                random.choice(self.timeslots)
-            )
-            for task in self.tasks
-        ]
-
-    def fitness(self, chromosome):
-        """Menghitung skor fitness berdasarkan seberapa baik jadwal"""
-        score = 0
-
-        teacher_schedule = {}
-        room_schedule = {}
-
-        for task, teacher, subject, room, timeslot in chromosome:
-            if (teacher, timeslot) in teacher_schedule:
-                score -= 10  # Penalti jika dosen bentrok
+    def fitness(self, individual):
+        penalty = 0
+        seen = set()
+        for entry in individual:
+            key = (entry['teacher'], entry['timeslot'])
+            if key in seen:
+                penalty += 1
             else:
-                teacher_schedule[(teacher, timeslot)] = True
-
-            if (room, timeslot) in room_schedule:
-                score -= 10  # Penalti jika ruangan bentrok
+                seen.add(key)
+            room_time = (entry['room'], entry['timeslot'])
+            if room_time in seen:
+                penalty += 1
             else:
-                room_schedule[(room, timeslot)] = True
-
-            if subject in self.teacher_skills[teacher]:
-                score += 5  # Bonus jika dosen mengajar sesuai keahlian
-
-        return score
+                seen.add(room_time)
+        return 1 / (1 + penalty)
 
     def select_parents(self, population, fitness_scores):
-        """Seleksi orang tua dengan metode roulette wheel aman"""
-        # Pastikan fitness tidak negatif
-        fitness_scores = [max(0, f) for f in fitness_scores]
-    
         total_fitness = sum(fitness_scores)
-        if total_fitness == 0:
-            return random.sample(population, 2)
-    
         probabilities = [f / total_fitness for f in fitness_scores]
         selected_indices = np.random.choice(len(population), size=2, p=probabilities, replace=False)
         return population[selected_indices[0]], population[selected_indices[1]]
 
-
-
     def crossover(self, parent1, parent2):
-        """Two-point crossover"""
-        point1, point2 = sorted(np.random.randint(0, len(parent1), 2))
-        child1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
-        child2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
+        point = random.randint(1, len(parent1) - 1)
+        child1 = parent1[:point] + parent2[point:]
+        child2 = parent2[:point] + parent1[point:]
         return child1, child2
 
-    def mutate(self, chromosome):
-        """Mutasi dengan mengganti ruangan atau waktu"""
-        for i in range(len(chromosome)):
-            if np.random.rand() < self.mutation_rate:
-                task, teacher, subject, room, timeslot = chromosome[i]
-                new_room = random.choice(self.rooms)
-                new_timeslot = random.choice(self.timeslots)
-                chromosome[i] = (task, teacher, subject, new_room, new_timeslot)
-        return chromosome
+    def mutate(self, individual, mutation_rate=0.1):
+        for entry in individual:
+            if random.random() < mutation_rate:
+                entry['teacher'] = random.choice(self.teachers)
+            if random.random() < mutation_rate:
+                entry['room'] = random.choice(self.rooms)
+            if random.random() < mutation_rate:
+                entry['timeslot'] = random.choice(self.timeslots)
+        return individual
 
-    def evolve(self):
-        """Menjalankan algoritma genetika"""
-        population = [self.create_chromosome() for _ in range(self.population_size)]
+    def evolve(self, generations=100, population_size=50):
+        population = self.initialize_population(population_size)
+        history = []
 
-        for _ in range(self.generations):
-            fitness_scores = [self.fitness(chrom) for chrom in population]
+        for _ in range(generations):
+            fitness_scores = [self.fitness(ind) for ind in population]
+            best_fitness = max(fitness_scores)
+            history.append(best_fitness)
+
             new_population = []
-
-            for _ in range(self.population_size // 2):
+            while len(new_population) < population_size:
                 parent1, parent2 = self.select_parents(population, fitness_scores)
                 child1, child2 = self.crossover(parent1, parent2)
                 new_population.append(self.mutate(child1))
-                new_population.append(self.mutate(child2))
+                if len(new_population) < population_size:
+                    new_population.append(self.mutate(child2))
 
             population = new_population
 
-        best_chromosome = max(population, key=self.fitness)
-        return best_chromosome
+        best_index = np.argmax([self.fitness(ind) for ind in population])
+        return population[best_index], history
