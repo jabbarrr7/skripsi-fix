@@ -55,14 +55,14 @@ class GeneticScheduler:
         return score
 
     def select_parents(self, population, fitness_scores):
-    """Seleksi orang tua dengan metode roulette wheel aman"""
-    total_fitness = sum(fitness_scores)
-    if total_fitness == 0:
-        # Jika semua fitness nol, pilih dua parent secara acak
-        return random.sample(population, 2)
-    probabilities = [f / total_fitness for f in fitness_scores]
-    selected_indices = np.random.choice(len(population), size=2, p=probabilities, replace=False)
-    return population[selected_indices[0]], population[selected_indices[1]]
+        """Seleksi orang tua dengan metode roulette wheel aman"""
+        total_fitness = sum(fitness_scores)
+        if total_fitness == 0:
+            # Jika semua fitness nol, pilih dua parent secara acak
+            return random.sample(population, 2)
+        probabilities = [f / total_fitness for f in fitness_scores]
+        selected_indices = np.random.choice(len(population), size=2, p=probabilities, replace=False)
+        return population[selected_indices[0]], population[selected_indices[1]]
 
 
     def crossover(self, parent1, parent2):
