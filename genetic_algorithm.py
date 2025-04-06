@@ -66,12 +66,23 @@ class GeneticScheduler:
     def evolve(self, generations=100, population_size=50):
         population = self.initialize_population(population_size)
         history = []
-
-        for _ in range(generations):
+        evolution_log = []
+    
+        for gen in range(1, generations + 1):
             fitness_scores = [self.fitness(ind) for ind in population]
-            best_fitness = max(fitness_scores)
+            best_index = np.argmax(fitness_scores)
+            best_fitness = fitness_scores[best_index]
+            best_individual = population[best_index]
+    
+            # Simpan log tiap generasi
+            evolution_log.append({
+                "Generasi": gen,
+                "Fitness": round(best_fitness, 4),
+                "Jadwal": best_individual
+            })
+    
             history.append(best_fitness)
-
+    
             new_population = []
             while len(new_population) < population_size:
                 parent1, parent2 = self.select_parents(population, fitness_scores)
@@ -79,8 +90,9 @@ class GeneticScheduler:
                 new_population.append(self.mutate(child1))
                 if len(new_population) < population_size:
                     new_population.append(self.mutate(child2))
-
+    
             population = new_population
-
+    
         best_index = np.argmax([self.fitness(ind) for ind in population])
-        return population[best_index], history
+        return population[best_index], history, evolution_log
+
