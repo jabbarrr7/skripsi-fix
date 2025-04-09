@@ -12,8 +12,9 @@ class GeneticScheduler:
         population = []
         for _ in range(size):
             individual = []
-            for task in self.tasks:
-                teacher = random.choice(self.teachers)
+            for task_obj in self.tasks:  # task_obj berisi dict dari file CSV
+                task = task_obj['task']
+                teacher = task_obj['teacher']  # ambil teacher sesuai input, jangan acak
                 room = random.choice(self.rooms)
                 timeslot = random.choice(self.timeslots)
                 individual.append({
@@ -24,6 +25,7 @@ class GeneticScheduler:
                 })
             population.append(individual)
         return population
+
 
     def fitness(self, individual):
         penalty = 0
