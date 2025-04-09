@@ -55,13 +55,13 @@ class GeneticScheduler:
 
     def mutate(self, individual, mutation_rate=0.1):
         for entry in individual:
-            if random.random() < mutation_rate:
-                entry['teacher'] = random.choice(self.teachers)
+            # Jangan ubah teacher dan task
             if random.random() < mutation_rate:
                 entry['room'] = random.choice(self.rooms)
             if random.random() < mutation_rate:
                 entry['timeslot'] = random.choice(self.timeslots)
         return individual
+
 
     def evolve(self, generations=100, population_size=50):
         population = self.initialize_population(population_size)
