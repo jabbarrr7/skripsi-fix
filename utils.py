@@ -3,7 +3,13 @@ import uuid
 
 def parse_csv_input(uploaded_file):
     df = pd.read_csv(uploaded_file)
-    return df.to_dict(orient="records")
+    courses = df[["course", "teacher", "sks", "room", "semester"]].to_dict(orient="records")
+    teachers = df["teacher"].unique().tolist()
+    rooms = df["room"].unique().tolist()
+    timeslots = ["08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00"]  # Contoh jadwal
+    semesters = df["semester"].unique().tolist()
+    classes = ['A', 'B', 'C', 'D']  # Kelas maksimal 4
+    return courses, teachers, rooms, timeslots, semesters, classes
 
 def save_schedule_as_csv(schedule):
     df = pd.DataFrame(schedule)
