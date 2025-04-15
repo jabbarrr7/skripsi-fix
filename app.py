@@ -1,19 +1,15 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 from genetic_algorithm import GeneticScheduler
 from utils import parse_csv_input, save_schedule_as_csv
 
-st.title("Optimisasi Jadwal Perkuliahan dengan Algoritma Genetika")
+st.title("Optimisasi Penjadwalan Perkuliahan dengan Algoritma Genetika")
 
-uploaded_file = st.file_uploader("Upload file CSV jadwal perkuliahan", type=["csv"])
+uploaded_file = st.file_uploader("Upload file CSV jadwal", type=["csv"])
 if uploaded_file:
-    courses = parse_csv_input(uploaded_file)
-    rooms = list({c["room"] for c in courses})
-    start_times = list({c["start_time"] for c in courses})
-
-    scheduler = GeneticScheduler(courses, rooms, start_times)
-
+    courses, teachers, rooms, timeslots, semesters, classes = parse_csv_input(uploaded_file)
+    scheduler = GeneticScheduler(courses, teachers, rooms, timeslots, semesters, classes)
+    
     generations = st.slider("Jumlah generasi", 10, 500, 100)
     population_size = st.slider("Ukuran populasi", 10, 100, 50)
 
@@ -25,7 +21,7 @@ if uploaded_file:
     st.subheader("Jadwal Terbaik")
     st.dataframe(pd.DataFrame(best_schedule))
 
-    st.subheader("\U0001F4D8 Log Evolusi per Generasi")
+    st.subheader("📘 Log Evolusi per Generasi")
     df_log = pd.DataFrame({
         "Generasi": [entry["Generasi"] for entry in evolution_log],
         "Fitness": [entry["Fitness"] for entry in evolution_log]
