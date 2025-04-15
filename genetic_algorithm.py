@@ -15,19 +15,22 @@ class GeneticScheduler:
         for _ in range(size):
             individual = []
             for course_obj in self.courses:
+                # Gunakan data tetap dari CSV
                 course = course_obj['course']
                 teacher = course_obj['teacher']
-                sks = course_obj['sks']
-                semester = course_obj['semester']
-                class_ = random.choice(self.classes)
-                room = random.choice(self.rooms)
+                sks = int(course_obj['sks'])
+                semester = int(course_obj['semester'])
+                class_assigned = course_obj['class']
+                # Untuk timeslot, acak dari daftar timeslots
                 timeslot = random.choice(self.timeslots)
+                # Untuk ruangan, acak dari daftar rooms
+                room = random.choice(self.rooms)
                 individual.append({
                     "course": course,
                     "teacher": teacher,
                     "sks": sks,
                     "semester": semester,
-                    "class": class_,
+                    "class": class_assigned,
                     "room": room,
                     "timeslot": timeslot
                 })
@@ -36,18 +39,27 @@ class GeneticScheduler:
 
     def fitness(self, individual):
         penalty = 0
-        seen = set()
+        teacher_schedule = {}
+        room_schedule = {}
+        # Asumsikan timeslot berupa angka dan durasi dihitung berdasarkan sks
+        # Durasi: sks * 45 (menit) dibagi dengan slot (misalnya 1 slot = 45 menit)
         for entry in individual:
-            key = (entry['teacher'], entry['timeslot'], entry['semester'], entry['class'])
-            if key in seen:
+            ts = entry['timeslot']
+            duration = entry['sks']  # Karena 1 slot = 1 SKS (45 menit)
+            # Cek konflik untuk dosen: jika dosen memiliki 2 jadwal yang sama pada slot ts
+            teacher_key = (entry['teacher'], ts, entry['semester'], entry['class'])
+            if teacher_key in teacher_schedule:
                 penalty += 1
             else:
-                seen.add(key)
-            room_time = (entry['room'], entry['timeslot'])
-            if room_time in seen:
+                teacher_schedule[teacher_key] = True
+
+            # Cek konflik untuk ruangan: jika ruangan digunakan lebih dari sekali pada slot yang sama
+            room_key = (entry['room'], ts, entry['semester'])
+            if room_key in room_schedule:
                 penalty += 1
             else:
-                seen.add(room_time)
+                room_schedule[room_key] = True
+
         return 1 / (1 + penalty)
 
     def select_parents(self, population, fitness_scores):
@@ -57,6 +69,7 @@ class GeneticScheduler:
         return population[selected_indices[0]], population[selected_indices[1]]
 
     def crossover(self, parent1, parent2):
+        # Single-point crossover per course entry
         point = random.randint(1, len(parent1) - 1)
         child1 = parent1[:point] + parent2[point:]
         child2 = parent2[:point] + parent1[point:]
@@ -64,6 +77,7 @@ class GeneticScheduler:
 
     def mutate(self, individual, mutation_rate=0.1):
         for entry in individual:
+            # Hanya ubah room dan timeslot
             if random.random() < mutation_rate:
                 entry['room'] = random.choice(self.rooms)
             if random.random() < mutation_rate:
@@ -74,21 +88,20 @@ class GeneticScheduler:
         population = self.initialize_population(population_size)
         history = []
         evolution_log = []
-
+        
         for gen in range(1, generations + 1):
             fitness_scores = [self.fitness(ind) for ind in population]
             best_index = np.argmax(fitness_scores)
             best_fitness = fitness_scores[best_index]
             best_individual = population[best_index]
-
+            
             evolution_log.append({
                 "Generasi": gen,
                 "Fitness": round(best_fitness, 4),
                 "Jadwal": best_individual
             })
-
             history.append(best_fitness)
-
+            
             new_population = []
             while len(new_population) < population_size:
                 parent1, parent2 = self.select_parents(population, fitness_scores)
@@ -96,8 +109,7 @@ class GeneticScheduler:
                 new_population.append(self.mutate(child1))
                 if len(new_population) < population_size:
                     new_population.append(self.mutate(child2))
-
             population = new_population
-
-        best_index = np.argmax([self.fitness(ind) for ind in population])
-        return population[best_index], history, evolution_log
+        
+        final_best = max(population, key=lambda ind: self.fitness(ind))
+        return final_best, history, evolution_log
