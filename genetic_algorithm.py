@@ -43,20 +43,20 @@ class GeneticScheduler:
         seen = []
     
         for s in schedule:
-            kode_dosen = s["teacher"]
-            kode_ruangan = s["room"]
-            kelas = s["class"]
+            teacher = s["teacher"]
+            room = s["room"]
+            class_name = s["class"]
             timeslot = s["timeslot"]
     
             try:
                 day, start_time, end_time = parse_timeslot(timeslot)
             except:
-                continue  # skip yang gagal parsing
+                continue
     
             for other in seen:
-                o_dosen = other["teacher"]
-                o_ruangan = other["room"]
-                o_kelas = other["class"]
+                o_teacher = other["teacher"]
+                o_room = other["room"]
+                o_class = other["class"]
                 o_timeslot = other["timeslot"]
     
                 try:
@@ -64,38 +64,79 @@ class GeneticScheduler:
                 except:
                     continue
     
-                # Jika di hari yang sama
-                # if day == o_day:
-                #     # Cek apakah waktu tumpang tindih + aturan istirahat
-                #     gap = timedelta(minutes=30)
-                #     if (start_time < o_end + gap) and (end_time + gap > o_start):
-                #         # Cek konflik dosen
-                #         if kode_dosen == o_dosen:
-                #             conflicts += 1
-                #         # Cek konflik ruangan
-                #         if kode_ruangan == o_ruangan:
-                #             conflicts += 1
-                #         # Cek konflik kelas
-                #         if kelas == o_kelas:
-                #             conflicts += 1
-            # Cek konflik hanya jika entitas yang sama (bukan hanya waktu yang sama)
-            if kode_dosen == o_dosen and day == o_day:
-                if (start_time < o_end + gap) and (end_time + gap > o_start):
-                    conflicts += 1
-            
-            if kode_ruangan == o_ruangan and day == o_day:
-                if (start_time < o_end + gap) and (end_time + gap > o_start):
-                    conflicts += 1
-            
-            # Cek jika KELAS YANG SAMA bentrok (ini valid), tapi kalau beda kelas — jangan
-            if kelas == o_kelas and day == o_day:
-                if (start_time < o_end + gap) and (end_time + gap > o_start):
-                    conflicts += 1
-
+                if day == o_day:
+                    gap = timedelta(minutes=30)
+                    if (start_time < o_end + gap) and (end_time + gap > o_start):
+                        if teacher == o_teacher:
+                            conflicts += 1
+                        if room == o_room:
+                            conflicts += 1
+                        if class_name == o_class:
+                            conflicts += 1
     
             seen.append(s)
     
         return 1 / (1 + conflicts)
+
+
+    # def fitness(self, schedule):
+    #     conflicts = 0
+    #     seen = []
+    
+    #     for s in schedule:
+    #         kode_dosen = s["teacher"]
+    #         kode_ruangan = s["room"]
+    #         kelas = s["class"]
+    #         timeslot = s["timeslot"]
+    
+    #         try:
+    #             day, start_time, end_time = parse_timeslot(timeslot)
+    #         except:
+    #             continue  # skip yang gagal parsing
+    
+    #         for other in seen:
+    #             o_dosen = other["teacher"]
+    #             o_ruangan = other["room"]
+    #             o_kelas = other["class"]
+    #             o_timeslot = other["timeslot"]
+    
+    #             try:
+    #                 o_day, o_start, o_end = parse_timeslot(o_timeslot)
+    #             except:
+    #                 continue
+    
+    #             # Jika di hari yang sama
+    #             # if day == o_day:
+    #             #     # Cek apakah waktu tumpang tindih + aturan istirahat
+    #             #     gap = timedelta(minutes=30)
+    #             #     if (start_time < o_end + gap) and (end_time + gap > o_start):
+    #             #         # Cek konflik dosen
+    #             #         if kode_dosen == o_dosen:
+    #             #             conflicts += 1
+    #             #         # Cek konflik ruangan
+    #             #         if kode_ruangan == o_ruangan:
+    #             #             conflicts += 1
+    #             #         # Cek konflik kelas
+    #             #         if kelas == o_kelas:
+    #             #             conflicts += 1
+    #         # Cek konflik hanya jika entitas yang sama (bukan hanya waktu yang sama)
+    #         if kode_dosen == o_dosen and day == o_day:
+    #             if (start_time < o_end + gap) and (end_time + gap > o_start):
+    #                 conflicts += 1
+            
+    #         if kode_ruangan == o_ruangan and day == o_day:
+    #             if (start_time < o_end + gap) and (end_time + gap > o_start):
+    #                 conflicts += 1
+            
+    #         # Cek jika KELAS YANG SAMA bentrok (ini valid), tapi kalau beda kelas — jangan
+    #         if kelas == o_kelas and day == o_day:
+    #             if (start_time < o_end + gap) and (end_time + gap > o_start):
+    #                 conflicts += 1
+
+    
+    #         seen.append(s)
+    
+    #     return 1 / (1 + conflicts)
 
 
 
