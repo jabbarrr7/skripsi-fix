@@ -40,43 +40,28 @@ class GeneticScheduler:
 
     def fitness(self, schedule):
         conflicts = 0
-        seen = []
+        teacher_schedule = {}
+        room_schedule = {}
     
-        for s in schedule:
-            teacher = s["teacher"]
-            room = s["room"]
-            class_name = s["class"]
-            timeslot = s["timeslot"]
+        for entry in schedule:
+            teacher = entry['teacher']
+            room = entry['room']
+            timeslot = entry['timeslot']
     
-            try:
-                day, start_time, end_time = parse_timeslot(timeslot)
-            except:
-                continue
+            # Periksa konflik dosen
+            if (teacher, timeslot) in teacher_schedule:
+                conflicts += 1
+            else:
+                teacher_schedule[(teacher, timeslot)] = True
     
-            for other in seen:
-                o_teacher = other["teacher"]
-                o_room = other["room"]
-                o_class = other["class"]
-                o_timeslot = other["timeslot"]
-    
-                try:
-                    o_day, o_start, o_end = parse_timeslot(o_timeslot)
-                except:
-                    continue
-    
-                if day == o_day:
-                    gap = timedelta(minutes=30)
-                    if (start_time < o_end + gap) and (end_time + gap > o_start):
-                        if teacher == o_teacher:
-                            conflicts += 1
-                        if room == o_room:
-                            conflicts += 1
-                        if class_name == o_class:
-                            conflicts += 1
-    
-            seen.append(s)
+            # Periksa konflik ruangan
+            if (room, timeslot) in room_schedule:
+                conflicts += 1
+            else:
+                room_schedule[(room, timeslot)] = True
     
         return 1 / (1 + conflicts)
+    
 
 
     # def fitness(self, schedule):
