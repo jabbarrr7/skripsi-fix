@@ -38,29 +38,58 @@ class GeneticScheduler:
             population.append(individual)
         return population
 
-    def fitness(self, schedule):
-        conflicts = 0
-        teacher_schedule = {}
-        room_schedule = {}
-    
-        for entry in schedule:
-            teacher = entry['teacher']
-            room = entry['room']
-            timeslot = entry['timeslot']
-    
-            # Periksa konflik dosen
-            if (teacher, timeslot) in teacher_schedule:
-                conflicts += 1
-            else:
-                teacher_schedule[(teacher, timeslot)] = True
-    
-            # Periksa konflik ruangan
-            if (room, timeslot) in room_schedule:
-                conflicts += 1
-            else:
-                room_schedule[(room, timeslot)] = True
-    
-        return 1 / (1 + conflicts)
+
+def parse_timeslot(timeslot_str):
+    day, time_range = timeslot_str.split(', ')
+    start_str, end_str = time_range.split('-')
+    start_time = datetime.strptime(start_str, "%H:%M")
+    end_time = datetime.strptime(end_str, "%H:%M")
+    return day.strip(), start_time, end_time
+
+def fitness(self, schedule):
+    conflicts = 0
+    seen = []
+
+    for s in schedule:
+        teacher = s["teacher"]
+        room = s["room"]
+        class_name = s["class"]
+        timeslot = s["timeslot"]
+
+        try:
+            day, start_time, end_time = parse_timeslot(timeslot)
+        except:
+            continue  # skip if parsing fails
+
+        for other in seen:
+            o_teacher = other["teacher"]
+            o_room = other["room"]
+            o_class = other["class"]
+            o_timeslot = other["timeslot"]
+
+            try:
+                o_day, o_start, o_end = parse_timeslot(o_timeslot)
+            except:
+                continue
+
+            # If on the same day
+            if day == o_day:
+                # Check for overlapping time slots
+                if (start_time < o_end) and (end_time > o_start):
+                    # Check for teacher conflict
+                    if teacher == o_teacher:
+                        conflicts += 1
+                    # Check for room conflict
+                    if room == o_room:
+                        conflicts += 1
+                    # Check for class conflict
+                    if class_name == o_class:
+                        conflicts += 1
+
+        seen.append(s)
+
+    return 1 / (1 + conflicts)
+
     
 
 
