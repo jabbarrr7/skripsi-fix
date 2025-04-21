@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from datetime import datetime, timedelta
 
 class GeneticScheduler:
     def __init__(self, courses, teachers, rooms, timeslots, semesters, classes):
@@ -37,31 +38,51 @@ class GeneticScheduler:
             population.append(individual)
         return population
 
-    def fitness(self, individual):
-        penalty = 0
-        teacher_schedule = {}
+    def fitness(schedule):
+        conflicts = 0
+        seen = []
     
-        for entry in individual:
-            teacher = entry['teacher']
-            timeslot = entry['timeslot']
-            sks = entry['sks']
-            
-            start_time = timeslot
-            end_time = timeslot + sks - 1  # contoh: mulai slot 2, 2 sks → slot 2–3
+        for s in schedule:
+            kode_dosen = s["kode_dosen"]
+            kode_ruangan = s["kode_ruangan"]
+            kelas = s["kelas"]
+            timeslot = s["timeslot"]
     
-            if teacher not in teacher_schedule:
-                teacher_schedule[teacher] = []
-            
-            # Bandingkan dengan semua jadwal yang sudah ada untuk guru itu
-            for scheduled in teacher_schedule[teacher]:
-                scheduled_start, scheduled_end = scheduled
-                # Tambahkan waktu istirahat 1 slot (45 menit = 1 slot)
-                if not (end_time + 1 < scheduled_start or start_time > scheduled_end + 1):
-                    penalty += 1
-            
-            teacher_schedule[teacher].append((start_time, end_time))
+            try:
+                day, start_time, end_time = parse_timeslot(timeslot)
+            except:
+                continue  # skip yang gagal parsing
+    
+            for other in seen:
+                o_dosen = other["kode_dosen"]
+                o_ruangan = other["kode_ruangan"]
+                o_kelas = other["kelas"]
+                o_timeslot = other["timeslot"]
+    
+                try:
+                    o_day, o_start, o_end = parse_timeslot(o_timeslot)
+                except:
+                    continue
+    
+                # Jika di hari yang sama
+                if day == o_day:
+                    # Cek apakah waktu tumpang tindih + aturan istirahat
+                    gap = timedelta(minutes=30)
+                    if (start_time < o_end + gap) and (end_time + gap > o_start):
+                        # Cek konflik dosen
+                        if kode_dosen == o_dosen:
+                            conflicts += 1
+                        # Cek konflik ruangan
+                        if kode_ruangan == o_ruangan:
+                            conflicts += 1
+                        # Cek konflik kelas
+                        if kelas == o_kelas:
+                            conflicts += 1
+    
+            seen.append(s)
+    
+        return 1 / (1 + conflicts)
 
-            return 1 / (1 + penalty)
 
 
     def select_parents(self, population, fitness_scores):
