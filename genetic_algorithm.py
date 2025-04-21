@@ -61,7 +61,7 @@ class GeneticScheduler:
             
             teacher_schedule[teacher].append((start_time, end_time))
 
-    return 1 / (1 + penalty)
+            return 1 / (1 + penalty)
 
 
     def select_parents(self, population, fitness_scores):
