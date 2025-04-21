@@ -44,7 +44,7 @@ class GeneticScheduler:
             hari, jam = timeslot.split(", ")
             start, end = jam.split("-")
             fmt = "%H:%M"
-            return hari, datetime.strptime(start, fmt), datetime.strptime(end, fmt)
+            return hari.strip(), datetime.strptime(start.strip(), fmt), datetime.strptime(end.strip(), fmt)
         except Exception as e:
             print(f"Error parsing timeslot: {timeslot}", e)
             return None, None, None
