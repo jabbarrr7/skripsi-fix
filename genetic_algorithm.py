@@ -42,48 +42,41 @@ class GeneticScheduler:
             population.append(individual)
         return population
 
+    
+    from utils import parse_time_range  # gunakan versi ini, hapus yg di dalam class
 
-    def parse_time_range(timeslot):
-        try:
-            hari, jam = timeslot.split(", ")
-            start, end = jam.split("-")
-            fmt = "%H:%M"
-            return hari.strip(), datetime.strptime(start.strip(), fmt), datetime.strptime(end.strip(), fmt)
-        except Exception as e:
-            print(f"Error parsing timeslot: {timeslot}", e)
-            return None, None, None
-    
-    def fitness(self, schedule):
-        conflicts = 0
-        teacher_schedule = []
-        room_schedule = []
-    
-        for entry in schedule:
-            teacher = entry['teacher']
-            room = entry['room']
-            timeslot = entry['timeslot']
-    
-            day, start, end = parse_time_range(timeslot)
-            if not day:
-                continue
-    
-            # Cek konflik dosen
-            for t_day, t_start, t_end, t_name in teacher_schedule:
-                if t_name == teacher and t_day == day:
-                    if (start < t_end and end > t_start):  # overlap
-                        conflicts += 1
-    
-            teacher_schedule.append((day, start, end, teacher))
-    
-            # Cek konflik ruangan
-            for r_day, r_start, r_end, r_name in room_schedule:
-                if r_name == room and r_day == day:
-                    if (start < r_end and end > r_start):  # overlap
-                        conflicts += 1
-    
-            room_schedule.append((day, start, end, room))
-    
-        return 1 / (1 + conflicts)
+def fitness(self, schedule):
+    conflicts = 0
+    teacher_schedule = []
+    room_schedule = []
+
+    for entry in schedule:
+        teacher = entry['teacher']
+        room = entry['room']
+        timeslot = entry['timeslot']
+
+        day, start, end = parse_time_range(timeslot)
+        if not day:
+            continue
+
+        # Cek konflik dosen
+        for t_day, t_start, t_end, t_name in teacher_schedule:
+            if t_name == teacher and t_day == day:
+                if (start < t_end and end > t_start):  # overlap
+                    conflicts += 1
+
+        teacher_schedule.append((day, start, end, teacher))
+
+        # Cek konflik ruangan
+        for r_day, r_start, r_end, r_name in room_schedule:
+            if r_name == room and r_day == day:
+                if (start < r_end and end > r_start):  # overlap
+                    conflicts += 1
+
+        room_schedule.append((day, start, end, room))
+
+    return 1 / (1 + conflicts)
+
     
 
 
