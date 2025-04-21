@@ -38,7 +38,7 @@ class GeneticScheduler:
             population.append(individual)
         return population
 
-    def fitness(schedule):
+    def fitness(self, schedule):
         conflicts = 0
         seen = []
     
