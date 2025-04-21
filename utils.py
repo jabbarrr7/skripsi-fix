@@ -24,17 +24,17 @@ from datetime import datetime, timedelta
 #     classes = ['A', 'B', 'C', 'D']
     
 #     return courses, teachers, rooms, timeslots, semesters, classes
-    def parse_csv_input(uploaded_file):
-        df = pd.read_csv(uploaded_file)
-        df['sks'] = df['sks'].astype(int)
-        df['semester'] = df['semester'].astype(int)
-        courses = df.to_dict(orient="records")
-        teachers = df["teacher"].unique().tolist()
-        rooms = df["room"].unique().tolist()
-        timeslots = df['timeslot'].unique().tolist()
-        semesters = sorted(df["semester"].unique().tolist())
-        classes = df["class"].unique().tolist()
-        return courses, teachers, rooms, timeslots, semesters, classes
+def parse_csv_input(uploaded_file):
+    df = pd.read_csv(uploaded_file)
+    df['sks'] = df['sks'].astype(int)
+    df['semester'] = df['semester'].astype(int)
+    courses = df.to_dict(orient="records")
+    teachers = df["teacher"].unique().tolist()
+    rooms = df["room"].unique().tolist()
+    timeslots = df['timeslot'].unique().tolist()
+    semesters = sorted(df["semester"].unique().tolist())
+    classes = df["class"].unique().tolist()
+    return courses, teachers, rooms, timeslots, semesters, classes
 
 def parse_timeslot(timeslot_str):
     day, time_range = timeslot_str.split(', ')
