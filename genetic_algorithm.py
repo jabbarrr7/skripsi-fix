@@ -2,6 +2,8 @@ import numpy as np
 import random
 from datetime import datetime, timedelta
 from datetime import datetime
+from utils import parse_time_range
+
 
 
 class GeneticScheduler:
