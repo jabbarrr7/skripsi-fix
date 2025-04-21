@@ -43,7 +43,7 @@ class GeneticScheduler:
         seen = []
     
         for s in schedule:
-            kode_dosen = s["kode_dosen"]
+            kode_dosen = s["teacher"]
             kode_ruangan = s["kode_ruangan"]
             kelas = s["kelas"]
             timeslot = s["timeslot"]
@@ -54,7 +54,7 @@ class GeneticScheduler:
                 continue  # skip yang gagal parsing
     
             for other in seen:
-                o_dosen = other["kode_dosen"]
+                o_dosen = other["teacher"]
                 o_ruangan = other["kode_ruangan"]
                 o_kelas = other["kelas"]
                 o_timeslot = other["timeslot"]
