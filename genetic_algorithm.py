@@ -44,8 +44,8 @@ class GeneticScheduler:
     
         for s in schedule:
             kode_dosen = s["teacher"]
-            kode_ruangan = s["kode_ruangan"]
-            kelas = s["kelas"]
+            kode_ruangan = s["room"]
+            kelas = s["class"]
             timeslot = s["timeslot"]
     
             try:
@@ -55,8 +55,8 @@ class GeneticScheduler:
     
             for other in seen:
                 o_dosen = other["teacher"]
-                o_ruangan = other["kode_ruangan"]
-                o_kelas = other["kelas"]
+                o_ruangan = other["room"]
+                o_kelas = other["class"]
                 o_timeslot = other["timeslot"]
     
                 try:
