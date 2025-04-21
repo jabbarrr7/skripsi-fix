@@ -1,6 +1,8 @@
 import numpy as np
 import random
 from datetime import datetime, timedelta
+from datetime import datetime
+
 
 class GeneticScheduler:
     def __init__(self, courses, teachers, rooms, timeslots, semesters, classes):
