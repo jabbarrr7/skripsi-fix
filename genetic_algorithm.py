@@ -40,27 +40,29 @@ class GeneticScheduler:
     def fitness(self, individual):
         penalty = 0
         teacher_schedule = {}
-        room_schedule = {}
-        # Asumsikan timeslot berupa angka dan durasi dihitung berdasarkan sks
-        # Durasi: sks * 45 (menit) dibagi dengan slot (misalnya 1 slot = 45 menit)
+    
         for entry in individual:
-            ts = entry['timeslot']
-            duration = entry['sks']  # Karena 1 slot = 1 SKS (45 menit)
-            # Cek konflik untuk dosen: jika dosen memiliki 2 jadwal yang sama pada slot ts
-            teacher_key = (entry['teacher'], ts, entry['semester'], entry['class'])
-            if teacher_key in teacher_schedule:
-                penalty += 1
-            else:
-                teacher_schedule[teacher_key] = True
+            teacher = entry['teacher']
+            timeslot = entry['timeslot']
+            sks = entry['sks']
+            
+            start_time = timeslot
+            end_time = timeslot + sks - 1  # contoh: mulai slot 2, 2 sks → slot 2–3
+    
+            if teacher not in teacher_schedule:
+                teacher_schedule[teacher] = []
+            
+            # Bandingkan dengan semua jadwal yang sudah ada untuk guru itu
+            for scheduled in teacher_schedule[teacher]:
+                scheduled_start, scheduled_end = scheduled
+                # Tambahkan waktu istirahat 1 slot (45 menit = 1 slot)
+                if not (end_time + 1 < scheduled_start or start_time > scheduled_end + 1):
+                    penalty += 1
+            
+            teacher_schedule[teacher].append((start_time, end_time))
 
-            # Cek konflik untuk ruangan: jika ruangan digunakan lebih dari sekali pada slot yang sama
-            room_key = (entry['room'], ts, entry['semester'])
-            if room_key in room_schedule:
-                penalty += 1
-            else:
-                room_schedule[room_key] = True
+    return 1 / (1 + penalty)
 
-        return 1 / (1 + penalty)
 
     def select_parents(self, population, fitness_scores):
         total_fitness = sum(fitness_scores)
