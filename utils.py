@@ -36,12 +36,15 @@ def parse_csv_input(uploaded_file):
     classes = df["class"].unique().tolist()
     return courses, teachers, rooms, timeslots, semesters, classes
 
-def parse_timeslot(timeslot_str):
-    day, time_range = timeslot_str.split(', ')
-    start_str, end_str = time_range.split('-')
-    start_time = datetime.strptime(start_str, "%H:%M")
-    end_time = datetime.strptime(end_str, "%H:%M")
-    return day.strip(), start_time, end_time
+def parse_time_range(timeslot):
+    try:
+        hari, jam = timeslot.split(", ")
+        start, end = jam.split("-")
+        fmt = "%H:%M"
+        return hari.strip(), datetime.strptime(start.strip(), fmt), datetime.strptime(end.strip(), fmt)
+    except Exception as e:
+        print(f"Error parsing timeslot: {timeslot}", e)
+        return None, None, None
 
 
 def save_schedule_as_csv(schedule, filename_prefix="jadwal"):
